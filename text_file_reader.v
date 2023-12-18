@@ -4,7 +4,7 @@ module text_file_reader;
 
  initial begin
   // Read data from text file
-  $readmemh("input TestImage_2_.txt", data);
+  $readmemh("TestImage_2_.txt", data);
 
   // Display the read data
   $display("Data read from the file:");

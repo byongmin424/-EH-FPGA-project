@@ -1,47 +1,50 @@
-module dut (
-  input wire clk,
-  input wire rst,
-  input wire [7:0] received_data,
-  output reg [7:0] processed_data,
-  input wire dataRdy,
-  input wire [15:0] header_image_data_checksum,
-  input wire strb
+module dut(
+    input wire clk,
+    input wire rst,
+    input wire DataRdy,
+    output reg [7:0] Header,
+    output reg [7:0] ImageData,
+    output reg CheckSum,
+    output reg Strb
 );
 
-  // Internal variables and logic for processing data
-  reg [7:0] internal_state;
-  reg [15:0] internal_checksum;
-  reg internal_dataRdy;
-  reg internal_strb;
-  reg internal_data;
+// Parameters
+parameter IMAGE_WIDTH = 346;
+parameter IMAGE_HEIGHT = 371;
 
-  // DUT logic
-  always @(posedge clk or posedge rst) begin
+// Internal variables
+reg [15:0] counter;
+reg [7:0] checksum_accumulator;
+
+// Initialize
+initial begin
+    Header <= 8'b0;
+    ImageData <= 8'b0;
+    CheckSum <= 1'b0;
+    Strb <= 1'b0;
+    counter <= 16'b0;
+    checksum_accumulator <= 8'b0;
+end
+
+always @(posedge clk or posedge rst) begin
     if (rst) begin
-      internal_state <= 8'b0;
-      processed_data <= 8'b0;
-      internal_data <= 8'b0;
-      internal_checksum <= 16'b0;
-      internal_dataRdy <= 0;
-      internal_strb <= 0;
-      processed_data <= 8'b0; // 초기화가 필요한 경우 처리
-    end else begin
-      // Example: Process received_data and store in internal_state
-      internal_state <= received_data;
-      internal_dataRdy <= dataRdy;
-      internal_checksum <= header_image_data_checksum;
-      internal_strb <= strb;
-
-      // Example: Assign processed_data based on some condition
-      if (internal_state == 8'hFF) begin
-        processed_data <= internal_state;
-      end
-      if (internal_dataRdy && internal_strb) begin
-        // 이 부분에서 dataRdy, header_image_data_checksum, strb를 사용할 수 있습니다.
-        // 예를 들어, processed_data를 할당하거나 특정 동작 수행 가능
-        processed_data = internal_data;
-      end
-      end
+        Header <= 8'b0;
+        ImageData <= 8'b0;
+        CheckSum <= 1'b0;
+        Strb <= 1'b0;
+        counter <= 16'b0;
+        checksum_accumulator <= 8'b0;
+    end else if (DataRdy) begin
+        // Example logic for header, image data, checksum, and strobe signal
+        Header <= {IMAGE_WIDTH[7:0], IMAGE_HEIGHT[7:0]}; // Sample header
+        ImageData <= counter[7:0]; // Sample image data
+        checksum_accumulator <= checksum_accumulator + ImageData;
+        CheckSum <= checksum_accumulator;
+        
+        // Strobe signal logic
+        Strb <= (counter[7:0] == 8'hFF) ? ~Strb : Strb;
+        counter <= counter + 1;
     end
-  
+end
+
 endmodule
